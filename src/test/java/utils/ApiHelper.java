@@ -1,79 +1,78 @@
 package utils;
 
-import com.google.gson.Gson;
 import io.restassured.RestAssured;
 import io.restassured.response.Response;
-import data.TestData;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import data.TestData;
 
 public class ApiHelper {
 
     private static final String BASE_URL = "https://stellarburgers.nomoreparties.site/api/auth/";
-    private static final Logger logger = LoggerFactory.getLogger(ApiHelper.class);  // Логгер для диагностических сообщений
+    private static final Logger logger = LoggerFactory.getLogger(ApiHelper.class);
 
-    // Метод для регистрации нового пользователя с использованием сериализации
-    public static Response registerNewUser() {
-        // Используем уже готовые методы из TestData для генерации данных
-        String email = TestData.getRandomEmail();
-        String password = TestData.getRandomPassword();
-        String name = TestData.getRandomName();
+    // Регистрация пользователя с передачей объекта (RestAssured сам сериализует User в JSON)
+    public static Response registerNewUser(User user) {
+        logger.info("Регистрация пользователя: email={}, name={}", user.getEmail(), user.getName());
 
-        // Создаём объект для запроса
-        User user = new User(email, password, name);
-
-        // Сериализация объекта в JSON с помощью Gson
-        String requestBody = new Gson().toJson(user);
-
-        // Логируем данные запроса
-        logger.info("Request Body: " + requestBody);
-
-        // Выполняем запрос на регистрацию пользователя
         Response response = RestAssured.given()
                 .contentType("application/json")
-                .body(requestBody)
+                .body(user) // RestAssured сам преобразует объект в JSON
                 .post(BASE_URL + "register");
 
-        // Логируем ответ для диагностики
         logger.info("Response Body: " + response.getBody().asString());
         logger.info("Status Code: " + response.getStatusCode());
 
         return response;
     }
 
-    // Метод для удаления пользователя
+    // Регистрация пользователя без аргументов (с генерацией)
+    public static UserWithResponse registerNewUser() {
+        String email = TestData.getRandomEmail();
+        String password = TestData.getRandomPassword();
+        String name = TestData.getRandomName();
+
+        User user = new User(email, password, name);
+        Response response = registerNewUser(user);
+
+        return new UserWithResponse(user, response);
+    }
+
+    // Удаление пользователя
     public static Response deleteUser(String accessToken) {
         return RestAssured.given()
                 .header("Authorization", "Bearer " + accessToken)
                 .delete(BASE_URL + "user");
     }
 
-    // Вспомогательный класс для сериализации данных пользователя
+    // Класс пользователя
     public static class User {
         private String email;
         private String password;
         private String name;
 
-        // Конструктор
         public User(String email, String password, String name) {
             this.email = email;
             this.password = password;
             this.name = name;
         }
 
-        // Получаем email
-        public String getEmail() {
-            return email;
+        public String getEmail() { return email; }
+        public String getPassword() { return password; }
+        public String getName() { return name; }
+    }
+
+    // Класс для возвращения пользователя вместе с Response
+    public static class UserWithResponse {
+        private final User user;
+        private final Response response;
+
+        public UserWithResponse(User user, Response response) {
+            this.user = user;
+            this.response = response;
         }
 
-        // Получаем пароль
-        public String getPassword() {
-            return password;
-        }
-
-        // Получаем имя
-        public String getName() {
-            return name;
-        }
+        public User getUser() { return user; }
+        public Response getResponse() { return response; }
     }
 }

@@ -11,24 +11,24 @@ public class ConstructorTest extends TestBase {
     @Test
     @Description("Переход в раздел 'Булки'")
     public void testBunsSection() {
-        MainPage mainPage = new MainPage(driver);  // Используем драйвер из TestBase
+        MainPage mainPage = new MainPage(driver);
         mainPage.goToBuns();
-        Assert.assertTrue("Раздел 'Булки' не открылся", mainPage.isSectionVisible("Булки"));
+        Assert.assertTrue("Раздел 'Булки' не активен", mainPage.isSectionActive("Булки"));
     }
 
     @Test
     @Description("Переход в раздел 'Соусы'")
     public void testSaucesSection() {
-        MainPage mainPage = new MainPage(driver);  // Используем драйвер из TestBase
+        MainPage mainPage = new MainPage(driver);
         mainPage.goToSauces();
-        Assert.assertTrue("Раздел 'Соусы' не открылся", mainPage.isSectionVisible("Соусы"));
+        Assert.assertTrue("Раздел 'Соусы' не активен", mainPage.isSectionActive("Соусы"));
     }
 
     @Test
     @Description("Переход в раздел 'Начинки'")
     public void testFillingsSection() {
-        MainPage mainPage = new MainPage(driver);  // Используем драйвер из TestBase
+        MainPage mainPage = new MainPage(driver);
         mainPage.goToFillings();
-        Assert.assertTrue("Раздел 'Начинки' не открылся", mainPage.isSectionVisible("Начинки"));
+        Assert.assertTrue("Раздел 'Начинки' не активен", mainPage.isSectionActive("Начинки"));
     }
 }

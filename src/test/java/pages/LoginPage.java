@@ -39,38 +39,46 @@ public class LoginPage {
     public void clickPersonalCabinet() {
         WebElement cabinetButton = wait.until(ExpectedConditions.elementToBeClickable(personalCabinetButton));
         ((JavascriptExecutor) driver).executeScript("arguments[0].click();", cabinetButton);
+        // Ждем появления поля email после перехода
+        waitForEmailField();
     }
 
     @Step("Клик по кнопке 'Конструктор' через JavaScript")
     public void clickConstructor() {
         WebElement constructorBtn = wait.until(ExpectedConditions.elementToBeClickable(constructorButton));
         ((JavascriptExecutor) driver).executeScript("arguments[0].click();", constructorBtn);
-
     }
 
     @Step("Ввод email: {email}")
     public void enterEmail(String email) {
-        // Ожидаем появления поля email и что оно доступно для ввода
         WebElement emailElement = wait.until(ExpectedConditions.elementToBeClickable(emailField));
+        emailElement.clear();
         emailElement.sendKeys(email);
     }
 
     @Step("Ввод пароля")
     public void enterPassword(String password) {
+        if (password == null || password.isEmpty()) {
+            throw new IllegalArgumentException("Password must not be null or empty");
+        }
         WebElement passwordElement = wait.until(ExpectedConditions.elementToBeClickable(passwordField));
+        passwordElement.clear();
         passwordElement.sendKeys(password);
     }
+
 
     @Step("Клик по кнопке 'Восстановить' через JavaScript")
     public void clickRecoverLoginButton() {
         WebElement recoverBtn = wait.until(ExpectedConditions.elementToBeClickable(recoverLoginButton));
-        ((JavascriptExecutor) driver).executeScript("arguments[0].click();", recoverBtn);  // Клик через JavaScript
+        ((JavascriptExecutor) driver).executeScript("arguments[0].click();", recoverBtn);
+        waitForEmailField();
     }
 
     @Step("Клик по кнопке 'Восстановить пароль' для перехода на страницу восстановления")
     public void clickRecover() {
         WebElement recoverBtn = wait.until(ExpectedConditions.elementToBeClickable(recoverButton));
-        ((JavascriptExecutor) driver).executeScript("arguments[0].click();", recoverBtn);  // Клик по ссылке восстановления
+        ((JavascriptExecutor) driver).executeScript("arguments[0].click();", recoverBtn);
+        waitForEmailField();
     }
 
     @Step("Нажатие кнопки Войти через JavaScript")
@@ -82,17 +90,15 @@ public class LoginPage {
     @Step("Ожидание результата входа")
     public void waitForLoginResult() {
         WebDriverWait resultWait = new WebDriverWait(driver, Duration.ofSeconds(10));
-        try {
-            // Ждём либо кнопку оформления заказа, либо сообщение об ошибке
-            resultWait.until(driver ->
-                    driver.findElements(placeOrderButton).size() > 0 ||
-                            driver.findElements(errorMessage).size() > 0
-            );
-        } catch (Exception ignored) {}
+        resultWait.until(driver ->
+                driver.findElements(placeOrderButton).size() > 0 ||
+                        driver.findElements(errorMessage).size() > 0
+        );
     }
 
     @Step("Авторизация с email {email}")
     public void login(String email, String password) {
+        waitForEmailField();
         enterEmail(email);
         enterPassword(password);
         clickLogin();
