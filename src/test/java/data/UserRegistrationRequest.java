@@ -1,6 +1,6 @@
 package data;
 
-public class UserRegistrationRequest {
+public class git push origin develop3 UserRegistrationRequest {
     private String email;
     private String password;
     private String name;
