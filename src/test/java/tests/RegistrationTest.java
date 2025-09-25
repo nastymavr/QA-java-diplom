@@ -3,58 +3,45 @@ package tests;
 import config.TestBase;
 import data.TestData;
 import io.qameta.allure.Description;
+import io.qameta.allure.Step;
 import org.junit.Assert;
 import org.junit.Test;
 import pages.RegisterPage;
 
-public class RegistrationTest {
+public class RegistrationTest extends TestBase {
 
     // Метод для создания случайного пользователя и регистрации
-    private void registerUserAndCheckSuccess(String browser, String name, String email, String password) {
-        TestBase testBase = new TestBase(browser);
-        testBase.setUp();
-
-        RegisterPage registerPage = new RegisterPage(testBase.getDriver());
+    @Step("Регистрация пользователя с email: {email}, password: {password}")
+    private void registerUserAndCheckSuccess(String name, String email, String password) {
+        // Вместо указания конкретного браузера, берем его из конфигурации TestBase
+        RegisterPage registerPage = new RegisterPage(driver);
         registerPage.open();  // Открываем страницу регистрации
 
         registerPage.register(name, email, password);  // Регистрируем пользователя
         registerPage.waitForRegistrationResult();      // Ждём результат
         Assert.assertTrue("Регистрация не прошла", registerPage.isRegistrationSuccessful());
-
-        testBase.tearDown();
     }
 
     @Test
-    @Description("Успешная регистрация нового пользователя с браузером Chrome")
-    public void testSuccessfulRegistrationChrome() {
+    @Description("Успешная регистрация нового пользователя с браузером, заданным в config.properties")
+    @Step("Тест успешной регистрации нового пользователя")
+    public void testSuccessfulRegistration() {
         String name = TestData.getRandomName();
         String email = TestData.getRandomEmail();
         String password = TestData.getRandomPassword();
 
-        registerUserAndCheckSuccess("chrome", name, email, password);
+        registerUserAndCheckSuccess(name, email, password);
     }
 
     @Test
-    @Description("Успешная регистрация нового пользователя с браузером Yandex")
-    public void testSuccessfulRegistrationYandex() {
-        String name = TestData.getRandomName();
-        String email = TestData.getRandomEmail();
-        String password = TestData.getRandomPassword();
-
-        registerUserAndCheckSuccess("yandex", name, email, password);
-    }
-
-    @Test
-    @Description("Ошибка при регистрации с коротким паролем с браузером Chrome")
-    public void testRegistrationWithShortPasswordChrome() {
+    @Description("Ошибка при регистрации с коротким паролем с браузером, заданным в config.properties")
+    @Step("Тест ошибки регистрации с коротким паролем")
+    public void testRegistrationWithShortPassword() {
         String name = TestData.getRandomName();
         String email = TestData.getRandomEmail();
         String shortPassword = TestData.shortPassword;
 
-        TestBase testBase = new TestBase("chrome");
-        testBase.setUp();
-
-        RegisterPage registerPage = new RegisterPage(testBase.getDriver());
+        RegisterPage registerPage = new RegisterPage(driver);
         registerPage.open();
         registerPage.register(name, email, shortPassword);
 
@@ -62,29 +49,5 @@ public class RegistrationTest {
         registerPage.waitForRegistrationResult();
 
         Assert.assertTrue("Ожидалась ошибка 'Пароль слишком короткий'", registerPage.isPasswordErrorVisible());
-
-        testBase.tearDown();
-    }
-
-    @Test
-    @Description("Ошибка при регистрации с коротким паролем с браузером Yandex")
-    public void testRegistrationWithShortPasswordYandex() {
-        String name = TestData.getRandomName();
-        String email = TestData.getRandomEmail();
-        String shortPassword = TestData.shortPassword;
-
-        TestBase testBase = new TestBase("yandex");
-        testBase.setUp();
-
-        RegisterPage registerPage = new RegisterPage(testBase.getDriver());
-        registerPage.open();
-        registerPage.register(name, email, shortPassword);
-
-        // Ждём результата регистрации (появление ошибки)
-        registerPage.waitForRegistrationResult();
-
-        Assert.assertTrue("Ожидалась ошибка 'Пароль слишком короткий'", registerPage.isPasswordErrorVisible());
-
-        testBase.tearDown();
     }
 }

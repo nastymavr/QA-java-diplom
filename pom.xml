@@ -17,6 +17,24 @@
         <!-- Путь для Allure -->
         <allure.results.directory>${project.build.directory}/allure-results</allure.results.directory>
         <allure.report.directory>${project.build.directory}/site/allure-report</allure.report.directory>
+
+        <!-- Плагин для компиляции Java -->
+        <maven.compiler.plugin.version>3.8.1</maven.compiler.plugin.version>
+
+        <!-- Версия JUnit 4 -->
+        <junit.version>4.13.2</junit.version>
+
+        <!-- Версия Jackson -->
+        <jackson.version>2.13.0</jackson.version>
+
+        <!-- Версия JavaFaker -->
+        <javafaker.version>1.0.2</javafaker.version>
+
+        <!-- WebDriverManager version -->
+        <webdrivermanager.version>5.6.2</webdrivermanager.version>
+
+        <!-- Selenium version -->
+        <selenium.version>4.13.0</selenium.version>
     </properties>
 
     <dependencies>
@@ -24,7 +42,7 @@
         <dependency>
             <groupId>org.seleniumhq.selenium</groupId>
             <artifactId>selenium-java</artifactId>
-            <version>4.13.0</version>
+            <version>${selenium.version}</version>
         </dependency>
 
         <dependency>
@@ -37,7 +55,7 @@
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
-            <version>4.13.2</version>
+            <version>${junit.version}</version>
             <scope>test</scope>
         </dependency>
 
@@ -45,7 +63,7 @@
         <dependency>
             <groupId>io.github.bonigarcia</groupId>
             <artifactId>webdrivermanager</artifactId>
-            <version>5.6.2</version>
+            <version>${webdrivermanager.version}</version>
         </dependency>
 
         <!-- Allure -->
@@ -59,71 +77,76 @@
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-api</artifactId>
-            <version>2.0.9</version>
+            <version>1.7.32</version>
         </dependency>
 
-        <!-- Logback Classic -->
+        <!-- Jackson Databind (для сериализации/десериализации JSON) -->
         <dependency>
-            <groupId>ch.qos.logback</groupId>
-            <artifactId>logback-classic</artifactId>
-            <version>1.4.7</version>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
+            <version>${jackson.version}</version>
         </dependency>
 
-        <!-- RestAssured (для работы с API) -->
+        <!-- JavaFaker (для генерации случайных данных) -->
+        <dependency>
+            <groupId>com.github.javafaker</groupId>
+            <artifactId>javafaker</artifactId>
+            <version>${javafaker.version}</version>
+            <scope>test</scope>
+        </dependency>
         <dependency>
             <groupId>io.rest-assured</groupId>
             <artifactId>rest-assured</artifactId>
-            <version>5.5.3</version>
-            <scope>test</scope>
+            <version>5.2.0</version> <!-- используйте актуальную версию -->
         </dependency>
 
-        <!-- Для работы с JSONPath -->
-        <dependency>
-            <groupId>io.rest-assured</groupId>
-            <artifactId>json-path</artifactId>
-            <version>5.5.3</version>
-        </dependency>
+
     </dependencies>
 
+    <!-- Настройки сборки -->
     <build>
         <plugins>
-            <!-- Allure Maven Plugin -->
+            <!-- Плагин для компиляции и тестирования Java -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.8.1</version>
+                <configuration>
+                    <source>11</source>
+                    <target>11</target>
+                </configuration>
+            </plugin>
+
+            <!-- Плагин для Allure Report -->
             <plugin>
                 <groupId>io.qameta.allure</groupId>
-                <artifactId>allure-maven</artifactId>
-                <version>2.16.0</version> <!-- Версия плагина -->
+                <artifactId>allure-junit4</artifactId>
+                <version>2.23.0</version>
                 <executions>
                     <execution>
-                        <id>allure-report</id>
-                        <phase>verify</phase> <!-- Фаза для генерации отчета -->
                         <goals>
-                            <goal>report</goal> <!-- Генерация отчета -->
-                        </goals>
-                    </execution>
-                    <execution>
-                        <id>allure-serve</id>
-                        <phase>post-integration-test</phase> <!-- После выполнения тестов -->
-                        <goals>
-                            <goal>serve</goal> <!-- Запуск отчета -->
+                            <goal>serve</goal>
                         </goals>
                     </execution>
                 </executions>
-                <configuration>
-                    <resultsDirectory>${allure.results.directory}</resultsDirectory> <!-- Папка для хранения результатов -->
-                    <reportDirectory>${allure.report.directory}</reportDirectory> <!-- Папка для отчета -->
-                </configuration>
+
             </plugin>
-            <!-- Плагин для запуска тестов -->
+
+            <!-- Плагин для сборки JAR файла -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-surefire-plugin</artifactId>
-                <version>3.0.0-M5</version> <!-- Новая версия плагина -->
+                <artifactId>maven-jar-plugin</artifactId>
+                <version>3.2.0</version>
                 <configuration>
-                    <includes>
-                        <include>**/*Test.java</include>
-                    </includes>
+                    <archive>
+                        <manifest>
+                            <addClasspath>true</addClasspath>
+                            <mainClass>com.stellarburgers.Main</mainClass> <!-- Укажи основной класс, если нужно -->
+                        </manifest>
+                    </archive>
                 </configuration>
             </plugin>
         </plugins>
     </build>
+
 </project>

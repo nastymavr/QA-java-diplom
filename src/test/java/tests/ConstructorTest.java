@@ -2,87 +2,40 @@ package tests;
 
 import config.TestBase;
 import io.qameta.allure.Description;
+import io.qameta.allure.Step;
 import org.junit.Assert;
 import org.junit.Test;
 import pages.MainPage;
 
-public class ConstructorTest {
+public class ConstructorTest extends TestBase {
 
     @Test
-    @Description("Переход в раздел 'Булки' с браузером Chrome")
-    public void testBunsSectionChrome() {
-        TestBase testBase = new TestBase("chrome"); // Указываем Chrome
-        testBase.setUp();
-
-        MainPage mainPage = new MainPage(testBase.getDriver());
+    @Description("Переход в раздел 'Булки' с браузером, заданным в config.properties")
+    @Step("Переход в раздел 'Булки'")
+    public void testBunsSection() {
+        // Убираем жестко прописанные параметры браузера, теперь он берется из конфигурации
+        MainPage mainPage = new MainPage(driver);
         mainPage.goToBuns();  // Используем метод из MainPage
         Assert.assertTrue("Раздел 'Булки' не открылся", mainPage.isSectionVisible("Булки"));
-
-        testBase.tearDown();
     }
 
     @Test
-    @Description("Переход в раздел 'Булки' с браузером Yandex")
-    public void testBunsSectionYandex() {
-        TestBase testBase = new TestBase("yandex"); // Указываем Yandex
-        testBase.setUp();
-
-        MainPage mainPage = new MainPage(testBase.getDriver());
-        mainPage.goToBuns();  // Используем метод из MainPage
-        Assert.assertTrue("Раздел 'Булки' не открылся", mainPage.isSectionVisible("Булки"));
-
-        testBase.tearDown();
-    }
-
-    @Test
-    @Description("Переход в раздел 'Соусы' с браузером Chrome")
-    public void testSaucesSectionChrome() {
-        TestBase testBase = new TestBase("chrome"); // Указываем Chrome
-        testBase.setUp();
-
-        MainPage mainPage = new MainPage(testBase.getDriver());
+    @Description("Переход в раздел 'Соусы' с браузером, заданным в config.properties")
+    @Step("Переход в раздел 'Соусы'")
+    public void testSaucesSection() {
+        // Тот же браузер, что и в конфигурации
+        MainPage mainPage = new MainPage(driver);
         mainPage.goToSauces();  // Используем метод из MainPage
         Assert.assertTrue("Раздел 'Соусы' не открылся", mainPage.isSectionVisible("Соусы"));
-
-        testBase.tearDown();
     }
 
     @Test
-    @Description("Переход в раздел 'Соусы' с браузером Yandex")
-    public void testSaucesSectionYandex() {
-        TestBase testBase = new TestBase("yandex"); // Указываем Yandex
-        testBase.setUp();
-
-        MainPage mainPage = new MainPage(testBase.getDriver());
-        mainPage.goToSauces();  // Используем метод из MainPage
-        Assert.assertTrue("Раздел 'Соусы' не открылся", mainPage.isSectionVisible("Соусы"));
-
-        testBase.tearDown();
-    }
-
-    @Test
-    @Description("Переход в раздел 'Начинки' с браузером Chrome")
-    public void testFillingsSectionChrome() {
-        TestBase testBase = new TestBase("chrome"); // Указываем Chrome
-        testBase.setUp();
-
-        MainPage mainPage = new MainPage(testBase.getDriver());
+    @Description("Переход в раздел 'Начинки' с браузером, заданным в config.properties")
+    @Step("Переход в раздел 'Начинки'")
+    public void testFillingsSection() {
+        // Тот же браузер, что и в конфигурации
+        MainPage mainPage = new MainPage(driver);
         mainPage.goToFillings();  // Используем метод из MainPage
         Assert.assertTrue("Раздел 'Начинки' не открылся", mainPage.isSectionVisible("Начинки"));
-
-        testBase.tearDown();
-    }
-
-    @Test
-    @Description("Переход в раздел 'Начинки' с браузером Yandex")
-    public void testFillingsSectionYandex() {
-        TestBase testBase = new TestBase("yandex"); // Указываем Yandex
-        testBase.setUp();
-
-        MainPage mainPage = new MainPage(testBase.getDriver());
-        mainPage.goToFillings();  // Используем метод из MainPage
-        Assert.assertTrue("Раздел 'Начинки' не открылся", mainPage.isSectionVisible("Начинки"));
-
-        testBase.tearDown();
     }
 }

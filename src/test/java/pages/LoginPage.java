@@ -1,10 +1,7 @@
 package pages;
 
 import io.qameta.allure.Step;
-import org.openqa.selenium.By;
-import org.openqa.selenium.JavascriptExecutor;
-import org.openqa.selenium.WebDriver;
-import org.openqa.selenium.WebElement;
+import org.openqa.selenium.*;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 
@@ -14,23 +11,36 @@ public class LoginPage {
     private WebDriver driver;
     private WebDriverWait wait;
 
-    // Локаторы
-    private By emailField = By.xpath("//*[@id=\"root\"]/div/main/div/form/fieldset[1]/div/div/input");
-    private By passwordField = By.xpath("//*[@id=\"root\"]/div/main/div/form/fieldset[2]/div/div/input");
-    private By loginButton = By.xpath("//*[@id=\"root\"]/div/main/div/form/button");
-    private By errorMessage = By.xpath("//*[@id=\"root\"]/div/main/div/form/fieldset[2]/div/p");
-    private By placeOrderButton = By.xpath("//*[@id=\"root\"]/div/main/section[2]/div/button"); // "Оформить заказ"
-    private By recoverButton = By.xpath("//*[@id=\"root\"]/div/main/div/form/a"); // Исправленный локатор для ссылки восстановления пароля
-    private By recoverLoginButton = By.xpath("//*[@id=\"root\"]/div/main/div/form/button"); // Кнопка для отправки запроса восстановления
+    private By emailField = By.xpath("//label[text()='Email']/following-sibling::input");
+    private By passwordField = By.cssSelector("input[type='password']");
+    private By loginButton = By.cssSelector("button.button_button_type_primary__1O7Bx");
+    private By errorMessage = By.cssSelector("p.input__error.text_type_main-default");
+    private By placeOrderButton = By.xpath("//button[text()='Оформить заказ']");
+    private By recoverLink = By.xpath("//a[text()='Восстановить пароль']");
+    private By recoverLoginButton = By.xpath("//a[text()='Войти']");
+    private By personalCabinetButton = By.xpath("//button[text()='Войти в аккаунт']");
 
     public LoginPage(WebDriver driver) {
         this.driver = driver;
         this.wait = new WebDriverWait(driver, Duration.ofSeconds(10));
     }
 
+    // --- Новые методы для тестов ---
+    @Step("Открытие страницы логина")
+    public void open() {
+        driver.get("https://stellarburgers.nomoreparties.site/login");
+    }
+
+    @Step("Клик по кнопке 'Личный кабинет'")
+    public void clickPersonalCabinetButton() {
+        WebElement btn = wait.until(ExpectedConditions.elementToBeClickable(personalCabinetButton));
+        ((JavascriptExecutor) driver).executeScript("arguments[0].click();", btn);
+    }
+
+    // --- Существующие методы ---
     @Step("Ввод email: {email}")
     public void enterEmail(String email) {
-        driver.findElement(emailField).sendKeys(email);
+        wait.until(ExpectedConditions.visibilityOfElementLocated(emailField)).sendKeys(email);
     }
 
     @Step("Ввод пароля")
@@ -38,34 +48,10 @@ public class LoginPage {
         driver.findElement(passwordField).sendKeys(password);
     }
 
-    @Step("Клик по кнопке 'Восстановить' через JavaScript")
-    public void clickRecoverLoginButton() {
-        WebElement recoverBtn = wait.until(ExpectedConditions.elementToBeClickable(recoverLoginButton));
-        ((JavascriptExecutor) driver).executeScript("arguments[0].click();", recoverBtn);  // Клик через JavaScript
-    }
-
-    @Step("Клик по кнопке 'Восстановить пароль' для перехода на страницу восстановления")
-    public void clickRecover() {
-        WebElement recoverBtn = wait.until(ExpectedConditions.elementToBeClickable(recoverButton));
-        ((JavascriptExecutor) driver).executeScript("arguments[0].click();", recoverBtn);  // Клик по ссылке восстановления
-    }
-
-    @Step("Нажатие кнопки Войти через JavaScript")
+    @Step("Клик по кнопке 'Войти'")
     public void clickLogin() {
-        WebElement loginBtn = driver.findElement(loginButton);
-        ((JavascriptExecutor) driver).executeScript("arguments[0].click();", loginBtn);
-    }
-
-    @Step("Ожидание результата входа")
-    public void waitForLoginResult() {
-        WebDriverWait resultWait = new WebDriverWait(driver, Duration.ofSeconds(10));
-        try {
-            // Ждём либо кнопку оформления заказа, либо сообщение об ошибке
-            resultWait.until(driver ->
-                    driver.findElements(placeOrderButton).size() > 0 ||
-                            driver.findElements(errorMessage).size() > 0
-            );
-        } catch (Exception ignored) {}
+        WebElement btn = driver.findElement(loginButton);
+        ((JavascriptExecutor) driver).executeScript("arguments[0].click();", btn);
     }
 
     @Step("Авторизация с email {email}")
@@ -76,13 +62,31 @@ public class LoginPage {
         waitForLoginResult();
     }
 
+    @Step("Ожидание результата входа")
+    public void waitForLoginResult() {
+        wait.until(driver -> driver.findElements(placeOrderButton).size() > 0
+                || driver.findElements(errorMessage).size() > 0);
+    }
+
     @Step("Проверка успешного входа")
     public boolean isLoginSuccessful() {
         return driver.findElements(placeOrderButton).size() > 0;
     }
 
-    @Step("Проверка видимости ошибки при неверных данных")
+    @Step("Проверка видимости ошибки")
     public boolean isErrorMessageVisible() {
         return driver.findElements(errorMessage).size() > 0;
+    }
+
+    @Step("Клик по ссылке 'Восстановить пароль'")
+    public void clickRecover() {
+        WebElement link = wait.until(ExpectedConditions.elementToBeClickable(recoverLink));
+        ((JavascriptExecutor) driver).executeScript("arguments[0].click();", link);
+    }
+
+    @Step("Клик по ссылке 'Войти' на странице восстановления")
+    public void clickRecoverLoginButton() {
+        WebElement link = wait.until(ExpectedConditions.elementToBeClickable(recoverLoginButton));
+        ((JavascriptExecutor) driver).executeScript("arguments[0].click();", link);
     }
 }
