@@ -1,12 +1,9 @@
 package praktikum.api.client;
 
 import io.qameta.allure.Step;
-import io.restassured.path.json.JsonPath;
 import io.restassured.response.Response;
 import io.restassured.specification.RequestSpecification;
-
-import java.util.*;
-import java.util.stream.Collectors;
+import java.util.List;
 
 import static io.restassured.RestAssured.given;
 
@@ -33,14 +30,6 @@ public class ApiClient {
                 .post("/auth/login");
     }
 
-    @Step("Выход пользователя с телом {body}")
-    public Response logout(Map<String, String> body) {
-        return spec()
-                .body(body)
-                .when()
-                .post("/auth/logout");
-    }
-
     // --- INGREDIENTS ---
     @Step("Получение всех ингредиентов")
     public Response getIngredients() {
@@ -52,33 +41,24 @@ public class ApiClient {
     @Step("Получение списка всех ID ингредиентов")
     public List<String> getIngredientIds() {
         Response r = getIngredients().then().extract().response();
-        JsonPath jp = r.jsonPath();
-
-        List<String> ids = jp.getList("data._id");
-        if (ids != null && !ids.isEmpty()) return ids;
-
-        ids = jp.getList("ingredients._id");
-        if (ids != null && !ids.isEmpty()) return ids;
-
-        List<Map<String, Object>> items = jp.getList("data");
-        if (items != null && !items.isEmpty()) {
-            return items.stream()
-                    .map(m -> (String) m.get("_id"))
-                    .filter(Objects::nonNull)
-                    .collect(Collectors.toList());
-        }
-
-        return Collections.emptyList();
+        return r.jsonPath().getList("data._id");
     }
 
     // --- ORDERS ---
     @Step("Создание заказа с телом {body} и токеном {authorizationHeaderValue}")
     public Response createOrder(Object body, String authorizationHeaderValue) {
-        RequestSpecification req = spec().body(body);
-        if (authorizationHeaderValue != null && !authorizationHeaderValue.isBlank()) {
-            req.header("Authorization", authorizationHeaderValue);
+        Response response = spec().body(body)
+                .header("Authorization", authorizationHeaderValue)
+                .when()
+                .post("/orders");
+
+        // Проверка, что код статуса либо 200, либо 202
+        int statusCode = response.getStatusCode();
+        if (statusCode != 200 && statusCode != 202) {
+            throw new AssertionError("Expected status code 200 or 202 but got " + statusCode);
         }
-        return req.when().post("/orders");
+
+        return response;
     }
 
     @Step("Получение заказов пользователя с токеном {authorizationHeaderValue}")
@@ -88,5 +68,14 @@ public class ApiClient {
             req.header("Authorization", authorizationHeaderValue);
         }
         return req.when().get("/orders");
+    }
+
+    // --- DELETE USER ---
+    @Step("Удаление пользователя с токеном {authorizationHeaderValue}")
+    public Response deleteUser(String authorizationHeaderValue) {
+        return spec()
+                .header("Authorization", authorizationHeaderValue)
+                .when()
+                .delete("/auth/user");
     }
 }
