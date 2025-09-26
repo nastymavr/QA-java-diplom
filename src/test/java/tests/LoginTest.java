@@ -17,7 +17,6 @@ import java.time.Duration;
 
 public class LoginTest extends TestBase {
 
-    // Вспомогательный класс для хранения данных пользователя
     private static class User {
         String email;
         String password;
@@ -28,9 +27,10 @@ public class LoginTest extends TestBase {
         }
     }
 
-    // Метод для регистрации нового пользователя и возврата его данных
-    @Step("Регистрация нового пользователя с email: {email} и паролем: {password}")
+    // Метод для регистрации нового пользователя
     private User registerNewUser() {
+        // setUp();  // Не нужно здесь, браузер уже инициализирован в методе @Before
+
         String randomEmail = TestData.getRandomEmail();
         String randomName = TestData.getRandomName();
         String randomPassword = TestData.getRandomPassword();
@@ -39,53 +39,14 @@ public class LoginTest extends TestBase {
         registerPage.open();
         registerPage.register(randomName, randomEmail, randomPassword);
 
-        // Ждём редирект на /login после регистрации
         registerPage.waitForRegistrationResult();
         Assert.assertTrue("Регистрация не удалась", registerPage.isRegistrationSuccessful());
 
-        System.out.println("Регистрация завершена, текущий URL: " + driver.getCurrentUrl());
-
-        // Открываем главную
         driver.get("https://stellarburgers.nomoreparties.site/");
-
-        // Ждём появления кнопки "Войти в аккаунт"
         WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(10));
         wait.until(ExpectedConditions.elementToBeClickable(By.xpath("//button[text()='Войти в аккаунт']")));
 
-        System.out.println("Главная страница загружена, кнопка 'Войти в аккаунт' доступна");
-
         return new User(randomEmail, randomPassword);
-    }
-
-    @Test
-    @Description("Вход через кнопку 'Личный кабинет' после регистрации и перехода через Конструктор")
-    @Step("Тестирование входа через кнопку 'Личный кабинет'")
-    public void testLoginFromPersonalCabinet() {
-        // Регистрируем нового пользователя
-        User user = registerNewUser();
-
-        RegisterPage registerPage = new RegisterPage(driver);
-        registerPage.open();
-        registerPage.goToLoginPage();
-
-        // Создаем объект mainPage
-        MainPage mainPage = new MainPage(driver);
-
-        // Переходим на главную страницу через кнопку "Конструктор"
-        mainPage.goToConstructor();
-
-        // Теперь кликаем на "Личный кабинет"
-        mainPage.clickPersonalCabinet();
-
-        // Переходим на страницу входа
-        LoginPage loginPage = new LoginPage(driver);
-
-        // Вводим email и пароль для входа
-        loginPage.login(user.email, user.password);
-
-        // Проверяем успешность входа
-        Assert.assertTrue("Вход не выполнен: кнопка 'Оформить заказ' не появилась", loginPage.isLoginSuccessful());
-        Assert.assertFalse("Появилась ошибка при входе", loginPage.isErrorMessageVisible());
     }
 
     @Test
@@ -94,23 +55,45 @@ public class LoginTest extends TestBase {
     public void testLoginFromMainPage() {
         User user = registerNewUser();
 
-        // Открываем главную страницу и ждем кнопку "Войти в аккаунт"
         MainPage mainPage = new MainPage(driver);
-        mainPage.waitForLoginButton(); // Ожидаем появления кнопки "Войти в аккаунт"
+        mainPage.waitForLoginButton();  // Ожидаем появления кнопки "Войти в аккаунт"
 
-        // Нажимаем на кнопку "Войти в аккаунт"
         mainPage.clickLoginAccount();
 
-        // Переходим на страницу логина
         LoginPage loginPage = new LoginPage(driver);
 
-        // Вводим email и пароль для входа
         loginPage.login(user.email, user.password);
 
-        // Проверяем успешность входа
         Assert.assertTrue("Вход не выполнен: кнопка 'Оформить заказ' не появилась", loginPage.isLoginSuccessful());
         Assert.assertFalse("Появилась ошибка при входе", loginPage.isErrorMessageVisible());
     }
+
+    @Test
+    @Description("Вход через кнопку 'Личный кабинет'")
+    @Step("Тестирование входа через кнопку 'Личный кабинет'")
+    public void testLoginFromPersonalAccount() {
+        // Регистрируем нового пользователя
+        User user = registerNewUser();
+
+        // Создаем объект страницы логина
+        LoginPage loginPage = new LoginPage(driver);
+
+        // Кликаем по кнопке "Конструктор" перед входом в личный кабинет
+        loginPage.clickConstructor();
+
+        // Ожидаем появления кнопки "Личный кабинет"
+        loginPage.clickPersonalCabinet();
+
+        // Логинимся с помощью нового пользователя
+        loginPage.login(user.email, user.password);
+
+        // Проверяем, что вход успешный
+        Assert.assertTrue("Вход не выполнен: кнопка 'Оформить заказ' не появилась", loginPage.isLoginSuccessful());
+
+        // Проверяем, что ошибки при входе нет
+        Assert.assertFalse("Появилась ошибка при входе", loginPage.isErrorMessageVisible());
+    }
+
 
     @Test
     @Description("Вход через кнопку в форме регистрации")
@@ -120,9 +103,10 @@ public class LoginTest extends TestBase {
 
         RegisterPage registerPage = new RegisterPage(driver);
         registerPage.open();
-        registerPage.goToLoginPage();
+        registerPage.goToLoginPage();  // Переходим на страницу логина
 
         LoginPage loginPage = new LoginPage(driver);
+
         loginPage.login(user.email, user.password);
 
         Assert.assertTrue("Вход не выполнен: кнопка 'Оформить заказ' не появилась", loginPage.isLoginSuccessful());
@@ -135,23 +119,17 @@ public class LoginTest extends TestBase {
     public void testLoginFromRecoverPage() {
         User user = registerNewUser();
 
-        // Открываем главную страницу и нажимаем "Войти в аккаунт"
         MainPage mainPage = new MainPage(driver);
-        mainPage.clickLoginAccount();  // Нажимаем на кнопку "Войти в аккаунт"
+        mainPage.clickLoginAccount();
 
-        // Переходим на страницу логина
         LoginPage loginPage = new LoginPage(driver);
 
-        // Нажимаем на ссылку "Восстановить пароль" для перехода на страницу восстановления
-        loginPage.clickRecover();  // Клик по кнопке "Восстановить пароль"
+        loginPage.clickRecover();
 
-        // Нажимаем кнопку "Войти" на странице восстановления пароля, чтобы вернуться на страницу входа
-        loginPage.clickRecoverLoginButton();  // Клик по кнопке "Войти" на странице восстановления пароля
+        loginPage.clickRecoverLoginButton();
 
-        // Вводим данные для входа (email и пароль)
-        loginPage.login(user.email, user.password);  // Вводим email и пароль и выполняем вход
+        loginPage.login(user.email, user.password);
 
-        // Проверяем, что вход выполнен успешно
         Assert.assertTrue("Вход не выполнен: кнопка 'Оформить заказ' не появилась", loginPage.isLoginSuccessful());
         Assert.assertFalse("Появилась ошибка при входе", loginPage.isErrorMessageVisible());
     }

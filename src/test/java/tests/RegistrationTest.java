@@ -10,44 +10,60 @@ import pages.RegisterPage;
 
 public class RegistrationTest extends TestBase {
 
-    // Метод для создания случайного пользователя и регистрации
-    @Step("Регистрация пользователя с email: {email}, password: {password}")
+    // Метод для регистрации пользователя и проверки успешности
+    @Step("Регистрация пользователя с именем {name}, email {email}, и паролем {password}")
     private void registerUserAndCheckSuccess(String name, String email, String password) {
-        // Вместо указания конкретного браузера, берем его из конфигурации TestBase
-        RegisterPage registerPage = new RegisterPage(driver);
+        RegisterPage registerPage = new RegisterPage(driver);  // Используем драйвер из TestBase
         registerPage.open();  // Открываем страницу регистрации
 
-        registerPage.register(name, email, password);  // Регистрируем пользователя
-        registerPage.waitForRegistrationResult();      // Ждём результат
+        // Регистрируем пользователя
+        registerPage.register(name, email, password);
+        registerPage.waitForRegistrationResult();  // Ждём результат
+
+        // Проверяем успешность регистрации
         Assert.assertTrue("Регистрация не прошла", registerPage.isRegistrationSuccessful());
     }
 
     @Test
-    @Description("Успешная регистрация нового пользователя с браузером, заданным в config.properties")
-    @Step("Тест успешной регистрации нового пользователя")
-    public void testSuccessfulRegistration() {
+    @Description("Успешная регистрация нового пользователя с браузером Chrome")
+    @Step("Тестирование успешной регистрации с браузером Chrome")
+    public void testSuccessfulRegistrationChrome() {
         String name = TestData.getRandomName();
         String email = TestData.getRandomEmail();
         String password = TestData.getRandomPassword();
 
+        // Вызов метода регистрации с проверкой успеха
         registerUserAndCheckSuccess(name, email, password);
     }
 
     @Test
-    @Description("Ошибка при регистрации с коротким паролем с браузером, заданным в config.properties")
-    @Step("Тест ошибки регистрации с коротким паролем")
+    @Description("Успешная регистрация нового пользователя с браузером Yandex")
+    @Step("Тестирование успешной регистрации с браузером Yandex")
+    public void testSuccessfulRegistrationYandex() {
+        String name = TestData.getRandomName();
+        String email = TestData.getRandomEmail();
+        String password = TestData.getRandomPassword();
+
+        // Вызов метода регистрации с проверкой успеха
+        registerUserAndCheckSuccess(name, email, password);
+    }
+
+    @Test
+    @Description("Ошибка при регистрации с коротким паролем")
+    @Step("Тестирование регистрации с коротким паролем")
     public void testRegistrationWithShortPassword() {
         String name = TestData.getRandomName();
         String email = TestData.getRandomEmail();
         String shortPassword = TestData.shortPassword;
 
-        RegisterPage registerPage = new RegisterPage(driver);
-        registerPage.open();
-        registerPage.register(name, email, shortPassword);
+        RegisterPage registerPage = new RegisterPage(driver);  // Используем драйвер из TestBase
+        registerPage.open();  // Открываем страницу регистрации
+        registerPage.register(name, email, shortPassword);  // Регистрируем пользователя с коротким паролем
 
-        // Ждём результата регистрации (появление ошибки)
+        // Ждём результат регистрации (появление ошибки)
         registerPage.waitForRegistrationResult();
 
+        // Проверяем, что ошибка появилась
         Assert.assertTrue("Ожидалась ошибка 'Пароль слишком короткий'", registerPage.isPasswordErrorVisible());
     }
 }

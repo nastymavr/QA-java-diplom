@@ -1,25 +1,19 @@
 package data;
 
-import com.github.javafaker.Faker;
+import java.util.UUID;
 
 public class TestData {
 
-    private static Faker faker = new Faker();  // Создаем объект Faker
-
     public static String getRandomEmail() {
-        return faker.internet().emailAddress();  // Генерируем случайный email
+        return "test_" + UUID.randomUUID() + "@mail.com";
     }
 
     public static String getRandomName() {
-        return faker.name().firstName();  // Генерируем случайное имя
-    }
-
-    public static String getRandomLastName() {
-        return faker.name().lastName();  // Генерируем случайную фамилию
+        return "User_" + UUID.randomUUID().toString().substring(0, 5);
     }
 
     public static String getRandomPassword() {
-        return "Pwd" + faker.internet().password(8, 12);  // Генерация пароля с длиной от 8 до 12 символов
+        return "Pwd" + UUID.randomUUID().toString().substring(0, 8);
     }
 
     public static String shortPassword = "123";

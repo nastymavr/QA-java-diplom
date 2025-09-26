@@ -4,34 +4,55 @@ import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
 import io.github.bonigarcia.wdm.WebDriverManager;
-import org.openqa.selenium.remote.DesiredCapabilities;
 import org.openqa.selenium.WebDriverException;
-
-import java.nio.file.Paths;
 
 public class DriverFactory {
 
     public static WebDriver createDriver(String browser) {
+        WebDriver driver = null;
+
+        // Проверка типа браузера и настройка соответствующего драйвера
+        switch (browser.toLowerCase()) {
+            case "chrome":
+                driver = createChromeDriver();
+                break;
+            case "yandex":
+                driver = createYandexDriver();
+                break;
+            default:
+                throw new IllegalArgumentException("Неизвестный браузер: " + browser);
+        }
+        return driver;
+    }
+
+    private static WebDriver createChromeDriver() {
         // Автоматическая настройка ChromeDriver через WebDriverManager
-        WebDriverManager.chromedriver().setup();
-
-        if (browser.equalsIgnoreCase("chrome")) {
+        try {
+            WebDriverManager.chromedriver().setup();
             return new ChromeDriver();
-        } else if (browser.equalsIgnoreCase("yandex")) {
-            // Устанавливаем путь до Яндекс.Браузера
-            ChromeOptions options = new ChromeOptions();
-            options.setBinary("C:/Users/nasty/AppData/Local/Yandex/YandexBrowser/Application/browser.exe");
+        } catch (Exception e) {
+            throw new RuntimeException("Ошибка при инициализации ChromeDriver. Проверьте настройки WebDriverManager.", e);
+        }
+    }
 
-            // Путь до драйвера Яндекс.Браузера
-            System.setProperty("webdriver.chrome.driver", "D:/Nasti/WebDriver/yandexdriver/yandexdriver.exe");
+    private static WebDriver createYandexDriver() {
+        try {
+            // Получаем путь до Яндекс.Браузера из переменной окружения
+            String yandexBinaryPath = System.getenv("YANDEX_BROWSER_PATH");
 
-            try {
-                return new ChromeDriver(options);
-            } catch (WebDriverException e) {
-                throw new RuntimeException("Ошибка при инициализации Яндекс.Браузера. Проверьте путь к драйверу.");
+            if (yandexBinaryPath == null) {
+                throw new RuntimeException("Не установлен путь к Яндекс.Браузеру. Установите переменную окружения YANDEX_BROWSER_PATH.");
             }
-        } else {
-            throw new IllegalArgumentException("Неизвестный браузер: " + browser);
+
+            ChromeOptions options = new ChromeOptions();
+            options.setBinary(yandexBinaryPath);
+
+            // Используем WebDriverManager для настройки ChromeDriver
+            WebDriverManager.chromedriver().setup();
+
+            return new ChromeDriver(options);
+        } catch (WebDriverException e) {
+            throw new RuntimeException("Ошибка при инициализации Яндекс.Браузера. Проверьте путь к драйверу и настройки браузера.", e);
         }
     }
 }

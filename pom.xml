@@ -17,24 +17,6 @@
         <!-- Путь для Allure -->
         <allure.results.directory>${project.build.directory}/allure-results</allure.results.directory>
         <allure.report.directory>${project.build.directory}/site/allure-report</allure.report.directory>
-
-        <!-- Плагин для компиляции Java -->
-        <maven.compiler.plugin.version>3.8.1</maven.compiler.plugin.version>
-
-        <!-- Версия JUnit 4 -->
-        <junit.version>4.13.2</junit.version>
-
-        <!-- Версия Jackson -->
-        <jackson.version>2.13.0</jackson.version>
-
-        <!-- Версия JavaFaker -->
-        <javafaker.version>1.0.2</javafaker.version>
-
-        <!-- WebDriverManager version -->
-        <webdrivermanager.version>5.6.2</webdrivermanager.version>
-
-        <!-- Selenium version -->
-        <selenium.version>4.13.0</selenium.version>
     </properties>
 
     <dependencies>
@@ -42,7 +24,20 @@
         <dependency>
             <groupId>org.seleniumhq.selenium</groupId>
             <artifactId>selenium-java</artifactId>
-            <version>${selenium.version}</version>
+            <version>4.13.0</version>
+        </dependency>
+
+        <!-- SLF4J API (убрано дублирование) -->
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+            <version>2.0.9</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-simple</artifactId>
+            <version>2.0.9</version>
         </dependency>
 
         <dependency>
@@ -55,7 +50,7 @@
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
-            <version>${junit.version}</version>
+            <version>4.13.2</version>
             <scope>test</scope>
         </dependency>
 
@@ -63,7 +58,7 @@
         <dependency>
             <groupId>io.github.bonigarcia</groupId>
             <artifactId>webdrivermanager</artifactId>
-            <version>${webdrivermanager.version}</version>
+            <version>5.6.2</version>
         </dependency>
 
         <!-- Allure -->
@@ -73,80 +68,89 @@
             <version>2.23.0</version>
         </dependency>
 
-        <!-- SLF4J Logging -->
+        <!-- Logback Classic -->
         <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-api</artifactId>
-            <version>1.7.32</version>
+            <groupId>ch.qos.logback</groupId>
+            <artifactId>logback-classic</artifactId>
+            <version>1.4.7</version>
         </dependency>
 
-        <!-- Jackson Databind (для сериализации/десериализации JSON) -->
-        <dependency>
-            <groupId>com.fasterxml.jackson.core</groupId>
-            <artifactId>jackson-databind</artifactId>
-            <version>${jackson.version}</version>
-        </dependency>
-
-        <!-- JavaFaker (для генерации случайных данных) -->
-        <dependency>
-            <groupId>com.github.javafaker</groupId>
-            <artifactId>javafaker</artifactId>
-            <version>${javafaker.version}</version>
-            <scope>test</scope>
-        </dependency>
+        <!-- RestAssured (для работы с API) -->
         <dependency>
             <groupId>io.rest-assured</groupId>
             <artifactId>rest-assured</artifactId>
-            <version>5.2.0</version> <!-- используйте актуальную версию -->
+            <version>5.5.3</version>
+            <scope>test</scope>
         </dependency>
 
-
+        <!-- Для работы с JSONPath -->
+        <dependency>
+            <groupId>io.rest-assured</groupId>
+            <artifactId>json-path</artifactId>
+            <version>5.5.3</version>
+        </dependency>
     </dependencies>
 
-    <!-- Настройки сборки -->
     <build>
         <plugins>
-            <!-- Плагин для компиляции и тестирования Java -->
+            <!-- Плагин для создания папки alluer-results, если она не существует -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.8.1</version>
-                <configuration>
-                    <source>11</source>
-                    <target>11</target>
-                </configuration>
-            </plugin>
-
-            <!-- Плагин для Allure Report -->
-            <plugin>
-                <groupId>io.qameta.allure</groupId>
-                <artifactId>allure-junit4</artifactId>
-                <version>2.23.0</version>
+                <artifactId>maven-antrun-plugin</artifactId>
+                <version>3.1.0</version>
                 <executions>
                     <execution>
+                        <phase>generate-resources</phase> <!-- Фаза создания папки -->
                         <goals>
-                            <goal>serve</goal>
+                            <goal>run</goal>
+                        </goals>
+                        <configuration>
+                            <target>
+                                <mkdir dir="${project.build.directory}/allure-results" />
+                            </target>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <!-- Allure Maven Plugin -->
+            <plugin>
+                <groupId>io.qameta.allure</groupId>
+                <artifactId>allure-maven</artifactId>
+                <version>2.16.0</version> <!-- Версия плагина -->
+                <executions>
+                    <execution>
+                        <id>allure-report</id>
+                        <phase>verify</phase> <!-- Фаза для генерации отчета -->
+                        <goals>
+                            <goal>report</goal> <!-- Генерация отчета -->
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>allure-serve</id>
+                        <phase>post-integration-test</phase> <!-- После выполнения тестов -->
+                        <goals>
+                            <goal>serve</goal> <!-- Запуск отчета -->
                         </goals>
                     </execution>
                 </executions>
-
+                <configuration>
+                    <resultsDirectory>${project.build.directory}/allure-results</resultsDirectory>
+                    <reportDirectory>${project.build.directory}/site/allure-report</reportDirectory>
+                </configuration>
             </plugin>
 
-            <!-- Плагин для сборки JAR файла -->
+            <!-- Плагин для запуска тестов -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-jar-plugin</artifactId>
-                <version>3.2.0</version>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>3.0.0-M5</version> <!-- Новая версия плагина -->
                 <configuration>
-                    <archive>
-                        <manifest>
-                            <addClasspath>true</addClasspath>
-                            <mainClass>com.stellarburgers.Main</mainClass> <!-- Укажи основной класс, если нужно -->
-                        </manifest>
-                    </archive>
+                    <includes>
+                        <include>**/*Test.java</include>
+                    </includes>
                 </configuration>
             </plugin>
         </plugins>
     </build>
-
 </project>

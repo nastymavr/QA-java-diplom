@@ -1,43 +1,34 @@
 package config;
 
 import io.restassured.response.Response;
-import org.apache.http.HttpStatus;  // Импортируем константы HTTP статус-кодов
 import org.junit.After;
 import org.junit.Before;
 import org.openqa.selenium.WebDriver;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import utils.ApiHelper;
-
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.Properties;
+import config.DriverFactory;
 
 public class TestBase {
     protected WebDriver driver;
     protected String browser;
     protected String accessToken;  // Токен для удаленного удаления пользователя
+    private static final Logger logger = LoggerFactory.getLogger(TestBase.class);  // Логгер для удобного логирования
 
-    // Конструктор для задания браузера через файл конфигурации
-    public TestBase() {
-        this.browser = loadBrowserFromConfig();
+    // Конструктор для задания браузера (chrome или yandex)
+    public TestBase(String browser) {
+        this.browser = browser;
     }
 
-    // Метод для загрузки браузера из конфигурационного файла
-    private String loadBrowserFromConfig() {
-        Properties properties = new Properties();
-        try (InputStream input = getClass().getClassLoader().getResourceAsStream("config.properties")) {
-            if (input == null) {
-                throw new IOException("Unable to find config.properties");
-            }
-            properties.load(input);
-            return properties.getProperty("browser", "chrome");  // Если не найдено, по умолчанию chrome
-        } catch (IOException ex) {
-            System.out.println("Ошибка при чтении config.properties: " + ex.getMessage());
-            return "chrome";  // По умолчанию используем Chrome
-        }
+    // Публичный конструктор без аргументов для JUnit 4
+    public TestBase() {
+        // Устанавливаем браузер по умолчанию
+        this("chrome");
     }
 
     @Before
     public void setUp() {
+        // Инициализация драйвера через фабрику
         driver = DriverFactory.createDriver(browser);
         driver.manage().window().maximize();
         driver.get("https://stellarburgers.nomoreparties.site/");
@@ -46,14 +37,16 @@ public class TestBase {
         Response registerResponse = ApiHelper.registerNewUser();
 
         // Логируем ответ от API для поиска проблемы
-        System.out.println("Ответ от API: " + registerResponse.asString());
+        logger.info("Ответ от API: " + registerResponse.asString());
 
         // Проверяем успешность регистрации
-        if (registerResponse.getStatusCode() == HttpStatus.SC_OK) {  // Используем SC_OK вместо 200
+        if (registerResponse.getStatusCode() == 200) {
             // Получаем токен из ответа регистрации для дальнейших запросов (например, для удаления)
             accessToken = registerResponse.jsonPath().getString("accessToken");
-            System.out.println("Регистрация прошла успешно, токен: " + accessToken);
+            logger.info("Регистрация прошла успешно, токен: " + accessToken);
         } else {
+            logger.error("Ошибка регистрации пользователя через API. Код ошибки: "
+                    + registerResponse.getStatusCode() + " Ответ: " + registerResponse.asString());
             throw new RuntimeException("Ошибка регистрации пользователя через API. Код ошибки: "
                     + registerResponse.getStatusCode() + " Ответ: " + registerResponse.asString());
         }
@@ -61,14 +54,13 @@ public class TestBase {
 
     @After
     public void tearDown() {
-        // Удаляем пользователя через API
+        // Удаление пользователя через API
         if (accessToken != null) {
             Response deleteResponse = ApiHelper.deleteUser(accessToken);
-            if (deleteResponse.getStatusCode() == HttpStatus.SC_OK) {  // Используем SC_OK вместо 200
-                System.out.println("Пользователь успешно удален через API.");
+            if (deleteResponse.getStatusCode() == 200) {
+                logger.info("Пользователь успешно удален через API.");
             } else {
-                System.out.println("Ошибка при удалении пользователя через API. Код ошибки: "
-                        + deleteResponse.getStatusCode());
+                logger.error("Ошибка при удалении пользователя через API.");
             }
         }
 
@@ -77,7 +69,7 @@ public class TestBase {
             try {
                 driver.quit();
             } catch (Exception e) {
-                System.out.println("Ошибка при закрытии драйвера: " + e.getMessage());
+                logger.error("Ошибка при закрытии драйвера: " + e.getMessage(), e);
             }
         }
     }
