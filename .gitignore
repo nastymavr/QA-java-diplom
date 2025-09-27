@@ -5,3 +5,4 @@
 !README.md
 !pom.xml
 !target/allure-results/
+!.gitignore

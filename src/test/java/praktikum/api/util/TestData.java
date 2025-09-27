@@ -1,37 +1,32 @@
 package praktikum.api.util;
 
-import com.github.javafaker.Faker;
-
 import java.util.List;
+import java.util.Locale;
+import java.util.UUID;
 import java.util.Arrays;
 
 public class TestData {
 
-    private static final Faker faker = new Faker();
-
-    // Генерация уникального email
     public static String uniqueEmail() {
-        return faker.internet().emailAddress();
+        return "user_" + UUID.randomUUID().toString().substring(0, 8).toLowerCase(Locale.ROOT) + "@example.com";
     }
 
-    // Генерация надежного пароля
     public static String strongPassword() {
-        return faker.internet().password(8, 16, true, true, true);
+        return "Pass!" + UUID.randomUUID().toString().substring(0, 8);
     }
 
-    // Генерация случайного имени
     public static String randomName() {
-        return faker.name().firstName() + "_" + faker.number().digits(4);
+        return "User_" + UUID.randomUUID().toString().substring(0, 4);
     }
 
     // Динамический список реальных ингредиентов
     public static List<String> realIngredients() {
         return Arrays.asList(
-                "61c0c5a71d1f82001bdaaa71",  // Био-марсианский минеральный бургер
-                "61c0c5a71d1f82001bdaaa76",  // Био-марсианский минеральный бургер
-                "61c0c5a71d1f82001bdaaa70",  // Метеоритный бургер
-                "61c0c5a71d1f82001bdaaa6d",  // Флюоресцентный бургер
-                "61c0c5a71d1f82001bdaaa6f"   // Бессмертный флюоресцентный бургер
+                "61c0c5a71d1f82001bdaaa71",
+                "61c0c5a71d1f82001bdaaa76",
+                "61c0c5a71d1f82001bdaaa77",
+                "61c0c5a71d1f82001bdaaa78",
+                "61c0c5a71d1f82001bdaaa79"
         );
     }
 }
